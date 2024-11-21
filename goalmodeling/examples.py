@@ -6,14 +6,15 @@ Author(s): ateeq@cmu.edu
 """
 
 import argparse
-from .schema import *
+from schema import *
 
 
 def obstacles():
-    # three em dash: #11835;
+    # three em dash: #11835;xsss
 
     not_g1 = Obstacle("<b>not</b> G1")
     not_g2 = Obstacle("<b>not</b> G2")
+
     not_g = Obstacle("<b>not</b> G", [Refinement(
         False,
         [not_g1]),

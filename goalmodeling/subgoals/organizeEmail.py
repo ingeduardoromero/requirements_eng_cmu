@@ -50,22 +50,57 @@ agent_user_mark_phishing = Agent("User", AgentType.ENVIRONMENT_AGENT)
 agent_user_move_spam = Agent("User", AgentType.ENVIRONMENT_AGENT)
 agent_user_quarantine = Agent("User", AgentType.ENVIRONMENT_AGENT)
 
-not_g1 = Obstacle("<b>not</b> G1")
-not_g2 = Obstacle("<b>not</b> G2")
 
-not_achieve_mark_email_as_phishing=Obstacle("<b>Not Achieve Mark Email as Phising</b>", [Refinement(
-            False,
-            [not_g1]),
-            Refinement(
-            False,
-            [not_g2])])
+correctly_label_phishing_emails = Goal(
+    goal_type=GoalType.BEHAVIORAL_GOAL,
+    name="Correctly label phishing emails"
+)
+
+retrain_AI_security_agent = Goal(
+    goal_type=GoalType.BEHAVIORAL_GOAL,
+    name="Retrain AI Security Agent"
+)
+
+phishing_email_incorrect_label = Obstacle(
+    name="Phishing Email Incorrectly labeled",
+    refinements=[Refinement(
+        False,
+        [correctly_label_phishing_emails]
+    )]
+)
+
+advanced_phishing = Obstacle(
+    name="Advanced Phishing Email occurs",
+     refinements=[Refinement(
+        False,
+        [retrain_AI_security_agent]
+    )]
+)
+
+
+not_achieve_mark_email_as_phishing=Obstacle(
+    "<b>Not Achieve Mark Email as Phishing</b>",
+    refinements=[
+        Refinement(False, [phishing_email_incorrect_label]),
+        Refinement(False, [advanced_phishing]
+    )]
+)
+
 
 achieve_mark_email_as_phishing = AchieveGoal(
     name="MarkEmailAsPhishing",
-    performs=[PerformanceLink(agent_user_mark_phishing, mark_as_phishing)],
-    refinements=None,
-    leaf=True
+    performs=[PerformanceLink(agent_user_mark_phishing, mark_as_phishing), PerformanceLink(advanced_phishing, correctly_label_phishing_emails)],
+    refinements=[
+        Refinement(False, [not_achieve_mark_email_as_phishing])
+    ],
 )
+
+
+phishing_resolution_label = ResolutionLink(correctly_label_phishing_emails, phishing_email_incorrect_label)
+phishing_resolution_ai = ResolutionLink(advanced_phishing, retrain_AI_security_agent)
+phishing_obstruction = ObstructionLink(achieve_mark_email_as_phishing, not_achieve_mark_email_as_phishing)
+
+
 
 
 achieve_move_email_to_spam_folder = AchieveGoal(
@@ -75,7 +110,6 @@ achieve_move_email_to_spam_folder = AchieveGoal(
     leaf=True
 )
 
-#not_achieve_move_email_to_spam_folder = ObstructionLink(achieve_mark_email_as_phishing, not_achieve_mark_email_as_phishing)
 
 not_achieve_move_email_to_spam_folder = ObstructionLink(
     goal= achieve_mark_email_as_phishing,
@@ -97,7 +131,6 @@ achieve_handle_phishing_emails = AchieveGoal(
             complete=True,
             children=[
                 achieve_mark_email_as_phishing,
-                not_achieve_mark_email_as_phishing
             ]
         ),
         Refinement(

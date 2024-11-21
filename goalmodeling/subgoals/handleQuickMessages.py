@@ -39,6 +39,27 @@ achieve_react_to_message_for_acknowledgment = AchieveGoal(
     refinements=None
 )
 
+purchase_additional_servers = Goal(
+    goal_type=GoalType.BEHAVIORAL_GOAL,
+    name="Increase number of servers"
+)
+
+
+limited_server_capacity = Obstacle(
+    name="Limited Server Capacity",
+     refinements=[Refinement(
+        False,
+        [purchase_additional_servers]
+    )]
+)
+
+unable_to_handle_chat_velocity = Obstacle(
+    "<b>Not able to handle chat load</b>",
+    refinements=[
+        Refinement(False, [limited_server_capacity]),
+    ]
+)
+
 achieve_handle_async_quick_messages = AchieveGoal(
     name="HandleAsyncChatMessages",
     performs=None,
@@ -47,7 +68,11 @@ achieve_handle_async_quick_messages = AchieveGoal(
         children=[
             achieve_create_message_thread_if_convo_needs_org,
             achieve_respond_to_specific_thread,
-            achieve_react_to_message_for_acknowledgment
+            achieve_react_to_message_for_acknowledgment,
+            unable_to_handle_chat_velocity
         ]
     )]
 )
+
+server_resolution= ResolutionLink(purchase_additional_servers, limited_server_capacity)
+async_obstruction = ObstructionLink(achieve_handle_async_quick_messages, unable_to_handle_chat_velocity)
